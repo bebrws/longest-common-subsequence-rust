@@ -1,9 +1,11 @@
 use std::array::IntoIter;
+use std::collections::HashSet;
 
 fn lcs<T>(x: T, y: T) -> Vec<Vec<<T as IntoIterator>::Item>>
 where
     T: IntoIterator,
-    T::Item: PartialEq + Default + Clone + std::fmt::Debug + std::fmt::Display,
+    T::Item:
+        PartialEq + Eq + Default + Clone + std::fmt::Debug + std::fmt::Display + std::hash::Hash,
 {
     let v1: Vec<T::Item> = x.into_iter().collect();
     let v2: Vec<T::Item> = y.into_iter().collect();
@@ -47,7 +49,12 @@ where
             println!("After iter table is {:?}\n", table);
         }
     }
-    return table[v1.len()][v2.len()].clone();
+    // let with_duplicates = table[v1.len()][v2.len()].clone();
+    let mut set = HashSet::new();
+    table[v1.len()][v2.len()].iter().for_each(|val| {
+        set.insert(val.clone());
+    });
+    return set.into_iter().collect();
 }
 
 fn main() {
