@@ -24,31 +24,25 @@ where
                     table[i][j] = temp;
                 }
             } else {
-                for vi in 0..table[i - 1][j].len() {
-                    println!(
-                        "Current values in table[i - 1][j][vi] {:?}",
-                        table[i - 1][j][vi]
-                    );
-                    let mut temp = table[i - 1][j][vi].clone();
-                    if table[i][j].len() == 0 {
-                        table[i][j] = vec![temp];
-                    } else {
-                        table[i][j].push(temp);
-                    }
+                let mut temp = table[i][j].clone();
+                let mut l1 = table[i - 1][j].clone();
+                let mut l2 = table[i][j - 1].clone();
+                let l1_longest = l1
+                    .iter()
+                    .fold(0, |acc, x| if x.len() > acc { x.len() } else { acc });
+                let l2_longest = l2
+                    .iter()
+                    .fold(0, |acc, x| if x.len() > acc { x.len() } else { acc });
+                if l1_longest == l2_longest {
+                    temp.append(&mut l1);
+                    temp.append(&mut l2);
+                } else if l1_longest > l2_longest {
+                    temp.append(&mut l1);
+                } else {
+                    temp.append(&mut l2);
                 }
-
-                for vi in 0..table[i][j - 1].len() {
-                    println!(
-                        "Current values in table[i][j-1][vi] {:?}",
-                        table[i][j - 1][vi]
-                    );
-                    let mut temp = table[i][j - 1][vi].clone();
-                    if table[i][j].len() == 0 {
-                        table[i][j] = vec![temp];
-                    } else {
-                        table[i][j].push(temp);
-                    }
-                }
+                println!("Loading from diagonal {:?}", temp);
+                table[i][j] = temp;
             }
             println!("After iter table is {:?}\n", table);
         }
