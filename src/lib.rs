@@ -1,5 +1,42 @@
+use itertools::Itertools;
 use std::array::IntoIter;
 use std::collections::HashSet;
+use wasm_bindgen::JsValue;
+use wasm_react::hooks::use_state;
+use wasm_react::{export_components, h, Component, VNode};
+
+struct LCSTable {}
+
+impl Component for LCSTable {
+    fn render(&self) -> VNode {
+        let row = use_state(|| 1);
+
+        let mut children = VNode::new();
+        for i in 0..*row.value() {
+            children.push(&h!(td).build(i));
+        }
+        let t = h!(table).build(h!(tr).build(children));
+        t
+    }
+}
+
+struct App;
+
+impl Component for App {
+    fn render(&self) -> VNode {
+        h!(div).build((LCSTable {}.build(),))
+    }
+}
+
+impl TryFrom<JsValue> for App {
+    type Error = JsValue;
+
+    fn try_from(_: JsValue) -> Result<Self, Self::Error> {
+        Ok(App)
+    }
+}
+
+export_components! { App }
 
 fn lcs<T>(x: T, y: T) -> Vec<Vec<<T as IntoIterator>::Item>>
 where
@@ -57,9 +94,9 @@ where
     return set.into_iter().collect();
 }
 
-fn main() {
-    println!(
-        "Result: {:?}",
-        lcs(vec!["a", "g", "c", "a", "t"], vec!["g", "a", "c"])
-    );
-}
+// fn main() {
+//     println!(
+//         "Result: {:?}",
+//         lcs(vec!["a", "g", "c", "a", "t"], vec!["g", "a", "c"])
+//     );
+// }
