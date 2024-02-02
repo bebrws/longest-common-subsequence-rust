@@ -51,6 +51,7 @@ dependencies = [
  "itertools",
  "wasm-bindgen",
  "wasm-react",
+ "web-sys",
 ]
 
 [[package]]

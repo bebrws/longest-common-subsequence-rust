@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use wasm_bindgen::JsValue;
 use wasm_react::hooks::{use_state, Deps};
 use wasm_react::{clones, export_components, h, Callback, Component, VNode};
+use web_sys::console::log_1;
 
 struct LCSTable {
     v1: Vec<String>,
@@ -24,6 +25,9 @@ impl Component for LCSTable {
             .on_click(&Callback::new({
                 clones!(self.v1, self.v2, mut table, mut result, mut row);
                 move |_| {
+                    unsafe {
+                        log_1(&JsValue::from_str("Button clicked"));
+                    }
                     row.set(|c| c + 1);
                     let result_and_table = lcs(
                         v1.clone(),
@@ -73,6 +77,7 @@ impl Component for LCSTable {
                     next_row.push(&h!(td).build("[]"));
                 }
                 next_row.push(&h!(td).build(format!("{:?}", table.value()[i][j])));
+                println!("table {:?}", table.value()[i][j]);
             }
             rows.push(&h!(tr).build(next_row));
         }
@@ -104,7 +109,7 @@ impl Component for App {
             v2: v2,
             table: table,
             result: vec![],
-            row: 1,
+            row: 0,
         }
         .build(),))
     }
@@ -140,7 +145,11 @@ where
     // vec![vec![vec![vec![T::Item::default(); 0]; 0]; v2.len() + 1]; v1.len() + 1];
     let mut table = old_table;
 
-    for j in 1..=v2.len() {
+    unsafe {
+        log_1(&JsValue::from_str(format!("Iterating to {}", row).as_str()));
+    }
+    let row_to_iterate_to = if row > v2.len() { v2.len() } else { row };
+    for j in 1..=row_to_iterate_to {
         for i in 1..=v1.len() {
             println!("cmp {} {}", v2[j - 1], v1[i - 1]);
             if v1[i - 1] == v2[j - 1] {
