@@ -21,6 +21,8 @@ impl Component for LCSTable {
         let table = use_state(|| self.table.clone());
         let result = use_state(|| self.result.clone());
 
+        let v2len = self.v2.len();
+
         let button = h!(button)
             .on_click(&Callback::new({
                 clones!(self.v1, self.v2, mut table, mut result, mut row);
@@ -28,7 +30,9 @@ impl Component for LCSTable {
                     unsafe {
                         log_1(&JsValue::from_str("Button clicked"));
                     }
-                    row.set(|c| c + 1);
+                    if *row.value() < v2len {
+                        row.set(|c| c + 1);
+                    }
                     let result_and_table = lcs(
                         v1.clone(),
                         v2.clone(),
@@ -39,7 +43,6 @@ impl Component for LCSTable {
                         (Some(result_from_lcs), new_table) => {
                             table.set(|_| new_table);
                             result.set(|_| result_from_lcs);
-                            // println!("Result: {:?}", result);
                         }
                         (None, new_table) => {
                             table.set(|_| new_table);
@@ -84,7 +87,21 @@ impl Component for LCSTable {
 
         let t = h!(table).build(rows);
 
-        let comp = h!(div).build((t, button));
+        let mut comp = h!(div).build((t, button));
+
+        if *row.value() == self.v2.len() {
+            let mut result_div = VNode::new();
+            // for i in 0..result.value().len() {
+            //     let mut inner_div = VNode::new();
+            //     for j in 0..result.value()[i].len() {
+            //         inner_div.push(&h!(div).build(result.value()[i][j].clone()));
+            //     }
+            //     result_div.push(&h!(div).build(inner_div));
+            // }
+            result_div.push(&h!(div).build(format!("{:?}", result.value())));
+            comp.push(&h!(div).build(result_div));
+        }
+
         comp
     }
 }
