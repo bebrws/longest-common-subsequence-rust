@@ -30,15 +30,15 @@ impl Component for LCSTable {
                     unsafe {
                         log_1(&JsValue::from_str("Button clicked"));
                     }
-                    if *row.value() < v2len {
-                        row.set(|c| c + 1);
-                    }
                     let result_and_table = lcs(
                         v1.clone(),
                         v2.clone(),
                         table.value().clone(),
                         *row.value() + 1,
                     );
+                    if *row.value() < v2len {
+                        row.set(|c| c + 1);
+                    }
                     match result_and_table {
                         (Some(result_from_lcs), new_table) => {
                             table.set(|_| new_table);
@@ -46,6 +46,11 @@ impl Component for LCSTable {
                         }
                         (None, new_table) => {
                             table.set(|_| new_table);
+                            unsafe {
+                                log_1(&JsValue::from_str(
+                                    format!("New table {:?}", table).as_str(),
+                                ));
+                            }
                         }
                     }
                 }
@@ -55,32 +60,41 @@ impl Component for LCSTable {
         let mut top_row = VNode::new();
         top_row.push(&h!(th).build("[]"));
         top_row.push(&h!(th).build("[]"));
-        for i in 0..self.v1.len() {
-            let val = self.v1[i].clone();
+        for j in 0..self.v2.len() {
+            let val = self.v2[j].clone();
             top_row.push(&h!(th).build(val));
         }
 
         let mut rows = VNode::new();
         rows.push(&h!(thead).build(h!(tr).build(top_row)));
 
-        let mut second_row = VNode::new();
-        second_row.push(&h!(td).build("[]"));
-        second_row.push(&h!(td).build("[]"));
-        for i in 0..self.v1.len() {
-            second_row.push(&h!(td).build("[]"));
-        }
+        // let mut second_row = VNode::new();
+        // second_row.push(&h!(td).build("[]"));
+        // second_row.push(&h!(td).build("[]"));
+        // for i in 0..self.v1.len() {
+        //     second_row.push(&h!(td).build("[]"));
+        // }
 
-        rows.push(&h!(tr).build(second_row));
+        // rows.push(&h!(tr).build(second_row));
 
+        let mut empty_row = VNode::new();
+        empty_row.push(&h!(td).build("[]"));
+        empty_row.push(&h!(td).build("[]"));
         for j in 0..self.v2.len() {
+            empty_row.push(&h!(td).build("[]"));
+        }
+        rows.push(&h!(tr).build(empty_row));
+
+        for i in 1..=self.v1.len() {
             let mut next_row = VNode::new();
-            for i in 0..self.v1.len() {
-                if i == 0 {
-                    next_row.push(&h!(td).build(self.v2[j].clone()));
+            for j in 1..=self.v2.len() {
+                if j == 1 {
+                    next_row.push(&h!(td).build(self.v1[i - 1].clone()));
                     next_row.push(&h!(td).build("[]"));
-                }
+                    // next_row.push(&h!(td).build(format!("{:?}", table.value()[i][j])));
+                } //else {
                 next_row.push(&h!(td).build(format!("{:?}", table.value()[i][j])));
-                println!("table {:?}", table.value()[i][j]);
+                // }
             }
             rows.push(&h!(tr).build(next_row));
         }
@@ -89,7 +103,13 @@ impl Component for LCSTable {
 
         let mut comp = h!(div).build((t, button));
 
-        if *row.value() == self.v2.len() {
+        unsafe {
+            log_1(&JsValue::from_str(
+                format!("self.v1.len() {}", self.v1.len()).as_str(),
+            ));
+        }
+
+        if *row.value() == self.v1.len() {
             let mut result_div = VNode::new();
             // for i in 0..result.value().len() {
             //     let mut inner_div = VNode::new();
@@ -98,7 +118,7 @@ impl Component for LCSTable {
             //     }
             //     result_div.push(&h!(div).build(inner_div));
             // }
-            result_div.push(&h!(div).build(format!("{:?}", result.value())));
+            result_div.push(&h!(div).build(format!("Result: {:?}", result.value())));
             comp.push(&h!(div).build(result_div));
         }
 
@@ -165,9 +185,9 @@ where
     unsafe {
         log_1(&JsValue::from_str(format!("Iterating to {}", row).as_str()));
     }
-    let row_to_iterate_to = if row > v2.len() { v2.len() } else { row };
-    for j in 1..=row_to_iterate_to {
-        for i in 1..=v1.len() {
+    let row_to_iterate_to = if row > v1.len() { v1.len() } else { row };
+    for j in 1..=v2.len() {
+        for i in 1..=row_to_iterate_to {
             println!("cmp {} {}", v2[j - 1], v1[i - 1]);
             if v1[i - 1] == v2[j - 1] {
                 println!("got match at {} {} for {}", i, j, v1[i - 1]);
@@ -204,7 +224,7 @@ where
         }
     }
 
-    if row == v2.len() {
+    if row == v1.len() {
         // let with_duplicates = table[v1.len()][v2.len()].clone();
         let mut set = HashSet::new();
         table[v1.len()][v2.len()].iter().for_each(|val| {
